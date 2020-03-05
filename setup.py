@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2020 Sotiris.
+# Copyright (C) 2020 Sotiris Tsepelakis.
 #
 # invenio-maDMP is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -58,9 +58,9 @@ setup(
     version=version,
     description=__doc__,
     long_description=readme + '\n\n' + history,
-    keywords='invenio TODO',
+    keywords='invenio maDMP',
     license='MIT',
-    author='Sotiris',
+    author='Sotiris Tsepelakis',
     author_email='leizersotos@gmail.com',
     url='https://github.com/inveniosoftware/invenio-madmp',
     packages=packages,
@@ -77,12 +77,13 @@ setup(
         'invenio_i18n.translations': [
             'messages = invenio_madmp',
         ],
-        # TODO: Edit these entry points to fit your needs.
         # 'invenio_access.actions': [],
         # 'invenio_admin.actions': [],
         # 'invenio_assets.bundles': [],
         # 'invenio_base.api_apps': [],
-        # 'invenio_base.api_blueprints': [],
+        'invenio_base.api_blueprints': [
+            'invenio_madmp = invenio_madmp.api:blueprint'
+        ],
         # 'invenio_base.blueprints': [],
         # 'invenio_celery.tasks': [],
         # 'invenio_db.models': [],
