@@ -29,11 +29,12 @@ Invenio module that handles maDMPs
 ========
 Features
 ========
+
 - Validating raw JSON or JSON file against `RDA-DMP Common Standard`_ schema_ and storing the
   important metadata
 - UI deposit form for file and metadata upload
 - Attaching file via UI to already existing record
-- Exporting Record Metadata as raw text
+- Exporting Record Metadata as stored in Invenio as JSON raw text
 - Downloading json file according to `RDA-DMP Common Standard`_ schema_
 
 .. _RDA-DMP Common Standard: https://github.com/RDA-DMP-Common/RDA-DMP-Common-Standard
@@ -49,19 +50,141 @@ See Installation_ file
 =====
 Usage
 =====
-TBA
+
+- | You can upload a machine actionable data management plan easily by making a ``POST`` request to the Invenio API:
+    ``/api/madmp/upload``
+  |
+  |  Validation will first occur. If the maDMP validates against the `RDA DMP Common Standard schema`_ then
+  |  the endpoint will be called that times, as many dataset objects you have stated in your maDMP.
+  |  The logic here is that **every dataset** is considered as a **different record**.
+  |  You can see the results by either making a ``GET`` request to Invenio's ``api/records/<record_id>`` or by
+  |  searching the records in the User Interface. See `API request screenshots`_.
+  |
+  |
+- | You can attach a file to these records using the UI. See `Attaching a file screenshots`_.
+  |
+  |  Do bear in mind that the file should depict the metadata accordingly
+  |
+  |
+- | Otherwise you can upload a file and its metadata using the UI deposit form located at ``/madmp/upload``.
+  |
+  |
+- | You can export a record's raw metadata as stored in Invenio or download a JSON file of the specific record's
+  | metadata according to `RDA DMP Common Standard schema`_
+
+
+.. _`RDA DMP Common Standard schema`: https://github.com/RDA-DMP-Common/RDA-DMP-Common-Standard/blob/master/examples/JSON/JSON-schema/1.0/maDMP-schema-1.0.json
+
+|
+
+
+.. |api_call| image:: images/API_requests/API_call.png
+    :height: 200px
+    :width: 700 px
+.. |success| image:: images/API_requests/API_success.png
+    :height: 100px
+    :width: 200 px
+.. |failure| image:: images/API_requests/API_failure.png
+    :height: 100px
+    :width: 200 px
+.. |get_request| image:: images/API_requests/Record_GetRequest.png
+    :height: 100px
+    :width: 200 px
+
+.. |search| image:: images/Results_UI.png
+    :height: 100px
+    :width: 200 px
+.. |record| image:: images/UI_record.png
+    :height: 100px
+    :width: 200 px
+
+.. |login_required| image:: images/Login_required.png
+    :height: 100px
+    :width: 200 px
+.. |attach_file| image:: images/File_attachment.png
+    :height: 100px
+    :width: 200 px
+.. |file_attached| image:: images/File_attached.png
+    :height: 100px
+    :width: 200 px
+.. |export| image:: images/
+    :height: 100px
+    :width: 200 px
+.. || image:: images/
+    :height: 100px
+    :width: 200 px
 
 ============
 Screenshots
 ============
+
+.. _API request screenshots:
+
+
+Upload via API request
+----------------------
+
+- | Making an API ``POST`` request to ``/api/madmp/upload`` using Postman_:
+  | |api_call|
+  |
+
+  - | Response on success
+    |  |success|
+    |
+
+  - | Response on (validation) failure.
+    |  Here the *ethical_issues_exist* field was deleted from the sample
+    |  file to demonstrate that the validation fails for a required field.
+    |  Other failures consist of providing an empty file, incorrect structure,
+    |  incorrect field values etc.
+    |  |failure|
+    |
+
+.. note:: You can find the sample file in examples_
+
+|
+
+- | Getting result from Invenio's ``api/records/<record_id>`` making ``GET`` request:
+  | |get_request|
+
+- | Getting results from Invenio's search UI:
+  | |search|
+
+- | Displaying Record fields from Invenio's UI:
+  | |record|
+
+.. _Postman: https://www.postman.com/
+.. _examples: https://github.com/SotosTsepe/invenio-madmp/tree/master/examples/rda-common-dmp.json
+
+|
+
+.. _Attaching a file screenshots:
+
+
+Attaching file to record
+------------------------
+
+- | First a small upload form will be rendered:
+  | |attach_file|
+  |
+
+  - | This view is login protected, so it won't be rendered, unless the user is logged in.
+    | |login_required|
+
+- | In case it is successful, redirection to the same record will occur, showing the attached file.
+
+|
+
+Exporting data
+------------------------
 TBA
 
 ==============
 Framework used
 ==============
-Invenio Software_
+`Invenio Software`_
 
-.. _Software: https://invenio-software.org/
+.. _Invenio Software: https://invenio-software.org/
 
 =======
 License
