@@ -1,14 +1,8 @@
-# -*- coding: utf-8 -*-
-#
-# Copyright (C) 2020 Sotirios Tsepelakis.
-#
-# invenio-maDMP is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-
 """Views for deposit of records."""
 
 from __future__ import absolute_import, print_function
 
+import json
 import os
 
 from flask import Blueprint, abort, current_app, flash, \
@@ -19,7 +13,7 @@ from invenio_db import db
 from sqlalchemy import text
 from werkzeug.utils import secure_filename
 
-from .api import UploadMaDMP
+from .api import UploadMaDMP, get_license_mapping
 from .forms import MaDMPForm, FileForm
 
 # define a new Flask Blueprint that is registered under the url path /madmp
@@ -30,6 +24,35 @@ blueprint = Blueprint(
     template_folder='templates',
     static_folder='static',
 )
+
+
+class Error:
+
+    def __init__(self, status: int, err_type: str):
+        self.status = status
+
+        if status == 400:
+            self.err_type = err_type
+
+    def make_error(self):
+        if self.status // 10**2 % 10 == 4:  # client errors
+
+            if self.status == 400:
+
+                @blueprint.errorhandler(self.status)
+                def bad_request():
+                    if self.err_type == 'Invalid Format':
+                        return make_response(render_template('maDmp/errors/400_wrong_format.html'), self.status)
+                    elif self.err_type == 'Foo':  # future use case
+                        return make_response(render_template('foobar.html'), self.status)
+
+                return bad_request()
+
+        elif self.status // 10 % 10 == 5:
+
+            @blueprint.errorhandler(self.status)
+            def server_error():  # server errors
+                pass
 
 
 def valid_formats():
@@ -47,17 +70,23 @@ def query_db(query, **kwargs):
     Make a query to the Invenio DB
 
     :param query: Query to run
-    :returns: Result of the query as RowProxy Instance
+    :returns: Result of the query as list
     """
 
-    result = db.session.execute(text(query), kwargs)
+    instance = db.session.execute(text(query), kwargs)
+    result = [{column: value for column, value in rowproxy.items()} for rowproxy in instance]
+    result = result.pop(0)
     return result
 
 
 @blueprint.route('/upload', methods=('GET', 'POST'))
 @login_required
 def create():
-    """The create view."""
+    """
+    Renders the upload form and saves the file and its metadata respectively.
+
+    :returns: The success endpoint if upload was successful, self with errors otherwise
+    """
 
     form = MaDMPForm()
 
@@ -119,7 +148,10 @@ def create():
 @blueprint.route("/success")
 @login_required
 def success():
-    """Success view."""
+    """
+    View for successful upload
+    """
+
     return render_template('maDmp/success.html')
 
 
@@ -140,24 +172,13 @@ def upload_file(rec_id):
                 flash('No selected file')
                 return redirect(request.url)
 
-            # TODO: Handle file is bigger error
             if file:
                 filename = secure_filename(file.filename)
-
-                '''result = RecordMetadata.query.filter(
-                    RecordMetadata.json['id'] == cast(session.get('rec_id'), JSONB)
-                ).one_or_none()'''
-
-                # result = (RecordMetadata.query.filter(text("CAST(json->>'id' AS INTEGER) = 2"))).first()
-                # < RecordMetadata ...uuid... >
-                # RecordMetadata.query.first().json['id']
 
                 query = "SELECT json FROM records_metadata WHERE json ->> 'id' = :id"
                 result = query_db(query, **{'id': str(rec_id)})
 
-                record_json_list = [{column: value for column, value in rowproxy.items()} for rowproxy in result]
-                record_json = record_json_list.pop(0)
-                bucket = record_json.get('json').get('_bucket')
+                bucket = result.get('json').get('_bucket')
 
                 UploadMaDMP.create_object(bucket, filename, file)
 
@@ -169,72 +190,98 @@ def upload_file(rec_id):
 
 @blueprint.route('<int:rec_id>/export/<string:format>', methods=['GET'])
 def export(rec_id, format=None):
-    if not format:
-        abort(400, 'No format selected')
 
-    if format not in valid_formats():
-        return render_template('maDmp/errors/wrong_format_400.html')
+    try:
+        query = "SELECT * FROM records_metadata WHERE json ->> 'id' = :id"
+        result = query_db(query, **{'id': str(rec_id)})
 
-    query = "SELECT * FROM records_metadata WHERE json ->> 'id' = :id"
-    result = query_db(query, **{'id': str(rec_id)})
+        if not result:
+            raise Exception
 
-    record_json_list = [{column: value for column, value in rowproxy.items()} for rowproxy in result]
-    record_json = record_json_list.pop(0)
-    record_json['metadata'] = record_json.pop('json')
-    print(record_json)
-    return render_template('maDmp/export.html', json=record_json, rec_id=rec_id)
+    except Exception:
+        abort(404)
+    else:
+        if format not in valid_formats():
+            error = Error(400, "Invalid Format")
+            error_response = error.make_error()
+            return error_response
+
+        record_json = result
+        record_json['metadata'] = record_json.pop('json')
+
+        return render_template(
+            'maDmp/export.html',
+            record=json.dumps(record_json, indent=2, default=str),
+            rec_id=rec_id
+        )
 
 
 @blueprint.route('<int:rec_id>/export/<string:format>/download', methods=['GET'])
 def download(rec_id, format=None):
 
-    if format not in valid_formats():
-        return render_template('maDmp/errors/wrong_format_400.html')
+    try:
+        query = "SELECT json FROM records_metadata WHERE json ->> 'id' = :id"
+        result = query_db(query, **{'id': str(rec_id)})
 
-    query = "SELECT json FROM records_metadata WHERE json ->> 'id' = :id"
-    result = query_db(query, **{'id': str(rec_id)})
+        if not result:
+            raise Exception
 
-    record_json_list = [{column: value for column, value in rowproxy.items()} for rowproxy in result]
-    record_json = record_json_list.pop(0)
-    record_json = record_json.pop('json')
+    except Exception:
+        abort(404)
+    else:
+        if format not in valid_formats():
+            error = Error(400, "Invalid Format")
+            error.make_error()
 
-    dt_lvl1_children = (
-        'description', 'personal_data', 'publication_date'
-        'sensitive_data', 'title'
-    )
-    dt_lvl2_children = (
-        'access_url', 'available_until', 'size',
-        'data_access', 'download_url', 'format',
-        'license'
-    )
+        record_json = result.pop('json')
+        print(record_json)
 
-    data = {'dmp': {}}  # parent dictionary
+        dmp_children = (
+            'contact', 'contributors', 'ethical_issues_exist'
+        )
+        dt_lvl1_children = (
+            'description', 'personal_data', 'publication_date',
+            'sensitive_data', 'title'
+        )
+        dt_lvl2_children = (
+            'access_url', 'available_until', 'size',
+            'data_access', 'download_url', 'format',
+            'license',
+        )
 
-    dataset_dict = {'dataset': []}
-    dataset_fields = {}  # dataset as object
+        data = {'dmp': {}}  # parent dictionary
 
-    distribution_dict = {'distribution': []}
-    distribution_fields = {}  # distribution as object
+        dataset_dict = {'dataset': []}
+        dataset_fields = {}  # dataset as object
 
-    for key in record_json:
+        distribution_dict = {'distribution': []}
+        distribution_fields = {}  # distribution as object
 
-        if key == 'contributors':
-            data['dmp'].update({key[:-1]: record_json[key]})
+        for key in record_json:
 
-        elif key in dt_lvl1_children:
-            dataset_fields.update({key: record_json[key]}) if key != 'publication_date' \
-                else dataset_fields.update({'issued': record_json[key]})
+            if key in dmp_children:
+                data['dmp'].update({key: record_json[key]}) if key != 'contributors' \
+                    else data['dmp'].update({key[:-1]: record_json[key]})
 
-        elif key in dt_lvl2_children:
-            distribution_fields.update({key: record_json[key]})
+            elif key in dt_lvl1_children:
+                dataset_fields.update({key: record_json[key]}) if key != 'publication_date' \
+                    else dataset_fields.update({'issued': record_json[key]})
 
-    distribution_dict['distribution'].append(distribution_fields)
-    dataset_fields.update(distribution_dict)
+            elif key in dt_lvl2_children:
+                distribution_fields.update({key: record_json[key]}) if key != 'license' \
+                    else distribution_fields.update(
+                        {'license': [{'license_ref': r for r in get_license_mapping()}]}
+                    )
 
-    dataset_dict['dataset'].append(dataset_fields)
-    data['dmp'].update(dataset_dict)
+        distribution_dict['distribution'].append(distribution_fields)
+        dataset_fields.update(distribution_dict)
 
-    response = make_response(data)
-    response.mimetype = 'application/json'
-    response.headers['Content-Disposition'] = 'attachment; filename=maDMP.json'
-    return response
+        dataset_dict['dataset'].append(dataset_fields)
+        data['dmp'].update(dataset_dict)
+
+        response = make_response(data)
+        response.mimetype = 'application/json'
+
+        filename = str(record_json['title'] + '-maDMP.json').replace(" ", "_")
+        response.headers['Content-Disposition'] = 'attachment; filename=%s' % filename
+        return response
