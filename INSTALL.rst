@@ -16,11 +16,11 @@ invenio-maDMP is on PyPI so all you need is:
 
 
 .. note::
- | You will also need to replace manually (for now) the json_ and elasticsearch_ schemas which come with Invenio,
- | as well as the `marshmallow json.py`_ file.
- |
- | Last but not least you will have to overwrite the record.html file in order to be able to attach files and
- | export their metadata.
+   You will also need to replace manually (for now) the json_ and elasticsearch_ schemas which come with Invenio,
+   as well as the `marshmallow json.py`_ file.
+
+   Last but not least you will have to overwrite the record.html file in order to be able to attach files and
+   export their metadata.
 
 .. _json:
 .. _elasticsearch:
