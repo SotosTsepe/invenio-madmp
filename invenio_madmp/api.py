@@ -25,7 +25,6 @@ from json import JSONDecodeError
 from jsonschema import validate, ValidationError, FormatChecker
 from werkzeug.exceptions import BadRequest
 
-from my_site.records.marshmallow import MetadataSchemaV1
 
 blueprint = Blueprint(
     'madmp',
@@ -34,35 +33,38 @@ blueprint = Blueprint(
     template_folder='templates'
 )
 
-license_mapping = {
-    'Apache License 2.0': 'https://opensource.org/licenses/Apache-2.0',
-    '3-Clause BSD License': 'https://opensource.org/licenses/BSD-3-Clause',
-    '2-Clause BSD License': 'https://opensource.org/licenses/BSD-2-Clause',
-    'GNU General Public License': {
-        'GNU Library General Public License version 2': 'https://opensource.org/licenses/LGPL-2.0',
-        'GNU Lesser General Public License version 2.1': 'https://opensource.org/licenses/LGPL-2.1',
-        'GNU Lesser General Public License version 3': 'https://opensource.org/licenses/LGPL-3.0'
-    },
-    'GNU LGPL': {
-        'GNU General Public License version 2': 'https://opensource.org/licenses/GPL-2.0',
-        'GNU General Public License version 3': 'https://opensource.org/licenses/GPL-3.0'
-    },
-    'MIT license': 'https://opensource.org/licenses/MIT',
-    'Mozilla Public License 2.0': 'https://opensource.org/licenses/MPL-2.0',
-    'Common Development and Distribution License 1.0': 'https://opensource.org/licenses/CDDL-1.0',
-    'Eclipse Public License version 2.0': 'https://opensource.org/licenses/EPL-2.0',
 
-    'CC BY': 'https://creativecommons.org/licenses/by/4.0/',
-    'CC BY-SA': 'https://creativecommons.org/licenses/by-sa/4.0/',
-    'CC BY-ND': 'https://creativecommons.org/licenses/by-nd/4.0/',
-    'CC BY-NC': 'https://creativecommons.org/licenses/by-nc/4.0/',
-    'CC BY-NC-SA': 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
-    'CC BY-NC-ND': 'https://creativecommons.org/licenses/by-nc-nd/4.0/'
-}
+def get_license_mapping():
+    license_mapping = {
+        'Apache License 2.0': 'https://opensource.org/licenses/Apache-2.0',
+        '3-Clause BSD License': 'https://opensource.org/licenses/BSD-3-Clause',
+        '2-Clause BSD License': 'https://opensource.org/licenses/BSD-2-Clause',
+        'GNU General Public License': {
+            'GNU Library General Public License version 2': 'https://opensource.org/licenses/LGPL-2.0',
+            'GNU Lesser General Public License version 2.1': 'https://opensource.org/licenses/LGPL-2.1',
+            'GNU Lesser General Public License version 3': 'https://opensource.org/licenses/LGPL-3.0'
+        },
+        'GNU LGPL': {
+            'GNU General Public License version 2': 'https://opensource.org/licenses/GPL-2.0',
+            'GNU General Public License version 3': 'https://opensource.org/licenses/GPL-3.0'
+        },
+        'MIT': 'https://opensource.org/licenses/MIT',
+        'Mozilla Public License 2.0': 'https://opensource.org/licenses/MPL-2.0',
+        'Common Development and Distribution License 1.0': 'https://opensource.org/licenses/CDDL-1.0',
+        'Eclipse Public License version 2.0': 'https://opensource.org/licenses/EPL-2.0',
+
+        'CC BY': 'https://creativecommons.org/licenses/by/4.0/',
+        'CC BY-SA': 'https://creativecommons.org/licenses/by-sa/4.0/',
+        'CC BY-ND': 'https://creativecommons.org/licenses/by-nd/4.0/',
+        'CC BY-NC': 'https://creativecommons.org/licenses/by-nc/4.0/',
+        'CC BY-NC-SA': 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
+        'CC BY-NC-ND': 'https://creativecommons.org/licenses/by-nc-nd/4.0/'
+    }
+    return license_mapping
 
 
 class UploadMaDMP(ContentNegotiatedMethodView):
-    """Validate madmp file or application/json text and upload metadata"""
+    """Validate madmp file or raw JSON and upload metadata"""
 
     def post(self):
         """
@@ -71,7 +73,7 @@ class UploadMaDMP(ContentNegotiatedMethodView):
         Verify first, if the file validates against the maDMP schema.
         Then store its metadata.
 
-        :returns: Created Record(s)
+        :returns: Created Record View
         """
 
         global json_data
@@ -112,8 +114,6 @@ class UploadMaDMP(ContentNegotiatedMethodView):
                     raise BadRequest('JSON data is empty')
 
             validate(instance=json_data, schema=schema_data, format_checker=FormatChecker())
-            # json_v1 = marshmallow_loader(MetadataSchemaV1)
-            # __all__ = (json_v1,)
 
         except BadRequest as bad_req_exc:
             response = jsonify({'message': bad_req_exc.description, 'status': 400})
@@ -188,10 +188,10 @@ class UploadMaDMP(ContentNegotiatedMethodView):
         :returns: True if license is found in the mapping, False otherwise.
         """
 
-        if value in license_mapping.values():
+        if value in get_license_mapping().values():
             return True
 
-        for k, v in license_mapping.items():
+        for k, v in get_license_mapping().items():
             if isinstance(v, dict):
                 if value in v.values():
                     return True
@@ -206,6 +206,9 @@ class UploadMaDMP(ContentNegotiatedMethodView):
         :param all_data: dictionary with JSON data
         :returns: dictionary with certain extracted values, None if the structure is not valid
         """
+
+        def dataset_prim_keys():
+            return ('title', 'issued', 'type', 'personal_data', 'sensitive_data', 'description')
 
         def split_datasets():
             final_values = []
@@ -229,7 +232,10 @@ class UploadMaDMP(ContentNegotiatedMethodView):
         if all_data.get('dmp'):
 
             for field in all_data['dmp']:
-                if field == 'contact':
+                if field == 'ethical_issues_exist':
+                    desired_values.update({field: all_data['dmp'][field]})
+
+                elif field == 'contact':
 
                     temp = {field: {}}
 
@@ -238,7 +244,7 @@ class UploadMaDMP(ContentNegotiatedMethodView):
                         if key == 'name' or key == 'mbox':
                             temp[field].update({key: all_data['dmp'][field][key]})
 
-                    # desired_values.update(temp)
+                    desired_values.update(temp)
 
                 elif field == 'contributor':
                     temp1 = {}
@@ -248,7 +254,10 @@ class UploadMaDMP(ContentNegotiatedMethodView):
 
                         for key in item:
                             if key == 'name' or key == 'mbox' or key == 'role':
-                                temp1.update({key: item[key]})
+                                if key == 'mbox':
+                                    temp1.update({'email': item[key]})
+                                else:
+                                    temp1.update({key: item[key]})
 
                         temp2[field + 's'].append(temp1.copy())
 
@@ -272,8 +281,10 @@ class UploadMaDMP(ContentNegotiatedMethodView):
                         for key in dataset:
 
                             if not isinstance(dataset[key], (dict, list)):
-                                if key == 'title' or key == 'issued':
-                                    temp[field + str(dataset_counter)].update({key: dataset[key]})
+                                if key in dataset_prim_keys():
+                                    temp[field + str(dataset_counter)].update({'upload_type': dataset[key]}) \
+                                        if key == 'type'\
+                                        else temp[field + str(dataset_counter)].update({key: dataset[key]})
 
                             elif isinstance(dataset[key], list) and key == 'distribution':
                                 temp2 = []
@@ -287,14 +298,21 @@ class UploadMaDMP(ContentNegotiatedMethodView):
                                         # license is array so more nested loops are needed
                                         elif key2 == 'license':
                                             license_exists = True
+                                            license_fields = ('license_ref', 'start_date')
 
                                             for dt_license in item2[key2]:
                                                 for key3 in dt_license:
+
                                                     if key3 == 'license_ref':
                                                         if not UploadMaDMP.validate_license(dt_license[key3]):
-                                                            break
+                                                            continue
 
                                                         temp2.append({key3: dt_license[key3]})
+
+                                                    elif key3 == 'start_date':
+                                                        temp[field + str(dataset_counter)].update(
+                                                            {'license_' + key3: dt_license[key3]}
+                                                        )
 
                                             # check if license was appended and re-append
                                             if len(temp2) is not 0:
@@ -307,20 +325,20 @@ class UploadMaDMP(ContentNegotiatedMethodView):
 
                         if license_exists and len(temp2) is not 0:
                             found = False
-                            for k in license_mapping:
+                            for k in get_license_mapping():
                                 if found: break
 
-                                if isinstance(license_mapping[k], dict):
-                                    for k_nested in license_mapping[k]:
-                                        if license_mapping[k][k_nested] == \
-                                            temp[field + str(dataset_counter)].get('license')[0].get('license_ref'):
+                                if isinstance(get_license_mapping()[k], dict):
+                                    for k_nested in get_license_mapping()[k]:
+                                        if get_license_mapping()[k][k_nested] == \
+                                                temp[field + str(dataset_counter)].get('license')[0].get('license_ref'):
 
                                             temp[field + str(dataset_counter)]['license'] = k_nested
                                             found = True
                                             break
                                 else:
-                                    if license_mapping[k] == \
-                                        temp[field + str(dataset_counter)].get('license')[0].get('license_ref'):
+                                    if get_license_mapping()[k] == \
+                                            temp[field + str(dataset_counter)].get('license')[0].get('license_ref'):
 
                                         temp[field + str(dataset_counter)]['license'] = k
                                         break
@@ -341,13 +359,9 @@ class UploadMaDMP(ContentNegotiatedMethodView):
         """
 
         with db.session.begin_nested():
-
             rec_uuid = uuid.uuid4()
-
             current_pidstore.minters['recid'](rec_uuid, data)
-
             created_record = Record.create(data, id_=rec_uuid)
-
             RecordIndexer().index(created_record)
 
         db.session.commit()
@@ -390,5 +404,5 @@ upload_view = UploadMaDMP.as_view(
 blueprint.add_url_rule(
     '/upload',
     view_func=upload_view,
-    methods=['POST']
+    methods=['POST'],
 )
