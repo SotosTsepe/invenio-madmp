@@ -1,0 +1,12 @@
+{# -*- coding: utf-8 -*-
+
+  Invenio is free software; you can redistribute it and/or modify it
+  under the terms of the MIT License; see LICENSE file for more details.
+#}
+
+{% extends config.THEME_ERROR_TEMPLATE %}
+
+{% block message %}
+  <h1><i class="fa fa-flash"></i> {{_('Invalid Format')}}</h1>
+  <p>{{_('Please choose a valid format')}}</p>
+{% endblock message %}
