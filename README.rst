@@ -78,10 +78,10 @@ Usage
 |
 
 
-.. |api_call| image:: images/API_requests/API_call.png
+.. |api_call| image:: images/API_requests/API_request.png
     :height: 200px
     :width: 700 px
-.. |success| image:: images/API_requests/API_success.png
+.. |success| image:: images/API_requests/API_successful.png
     :height: 100px
     :width: 200 px
 .. |failure| image:: images/API_requests/API_failure.png
@@ -91,26 +91,26 @@ Usage
     :height: 100px
     :width: 200 px
 
-.. |search| image:: images/Results_UI.png
+.. |search| image:: images/UI/Results_UI.png
     :height: 100px
     :width: 200 px
-.. |record| image:: images/UI_record.png
+.. |record| image:: images/UI/UI_record.png
     :height: 100px
     :width: 200 px
 
-.. |login_required| image:: images/Login_required.png
+.. |login_required| image:: images/UI/Login_required.png
     :height: 100px
     :width: 200 px
-.. |attach_file| image:: images/File_attachment.png
+.. |attach_file| image:: images/UI/File_attachment.png
     :height: 100px
     :width: 200 px
-.. |file_attached| image:: images/File_attached.png
+.. |file_attached| image:: images/UI/File_attached.png
     :height: 100px
     :width: 200 px
-.. |export| image:: images/
+.. |export| image:: images/UI/Record_export.png
     :height: 100px
     :width: 200 px
-.. || image:: images/
+.. |download| image:: images/UI/File_downloaded.png
     :height: 100px
     :width: 200 px
 
@@ -119,7 +119,6 @@ Screenshots
 ============
 
 .. _API request screenshots:
-
 
 Upload via API request
 ----------------------
@@ -133,10 +132,8 @@ Upload via API request
     |
 
   - | Response on (validation) failure.
-    |  Here the *ethical_issues_exist* field was deleted from the sample
-    |  file to demonstrate that the validation fails for a required field.
-    |  Other failures consist of providing an empty file, incorrect structure,
-    |  incorrect field values etc.
+    |  Here the *ethical_issues_exist* field was deleted from the sample file to demonstrate that the validation fails for a required field.
+    |  Other failures consist of providing an empty file, incorrect structure, incorrect field values etc.
     |  |failure|
     |
 
@@ -160,7 +157,6 @@ Upload via API request
 
 .. _Attaching a file screenshots:
 
-
 Attaching file to record
 ------------------------
 
@@ -171,13 +167,27 @@ Attaching file to record
   - | This view is login protected, so it won't be rendered, unless the user is logged in.
     | |login_required|
 
+|
+
 - | In case it is successful, redirection to the same record will occur, showing the attached file.
+  | |file_attached|
 
 |
 
+Using the upload form
+---------------------
+TBA
+
 Exporting data
 ------------------------
-TBA
+Exporting consists of 2 parts:
+ - Exporting the data as stored in Invenio rendered in a preformatted area
+   |export|
+
+ |
+
+ - Downloading them in a file with the RDA DMP Common Standard format
+   |download|
 
 ==============
 Framework used
