@@ -1,0 +1,27 @@
+{%- extends config.BASE_TEMPLATE %}
+
+{% block page_body %}
+{% set ignore_list = ['id'] %}
+{% set metadata_ignore_list = ['_bucket', '$schema'] %}
+{% set files_ignore_list = ['bucket', 'checksum', 'file_id', 'version_id'] %}
+{% set link = "https://github.com/RDA-DMP-Common/RDA-DMP-Common-Standard" %}
+
+<div class="container">
+    <a href="{{ url_for('invenio_records_ui.recid', pid_value = rec_id) }}">Back</a>
+  </div>
+
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+      <h2 align="center"><b>JSON Record Metadata Export</b></h2>
+      <div class="data">
+        <pre style="white-space: pre-wrap">
+          {{- record -}}
+        </pre>
+			</div>
+      <button type="submit" onclick="window.location.href='{{ url_for('maDMP.download', rec_id=rec_id, format='json') }}'" class="btn btn-warning">Download</button>
+      &nbsp;<a href="{{ link }}"><small><u>According to RDA-DMP Common Standard</u></small></a>
+		</div>
+	</div>
+</div>
+{% endblock page_body %}
