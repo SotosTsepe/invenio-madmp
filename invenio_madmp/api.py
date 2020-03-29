@@ -5,7 +5,7 @@
 # invenio-maDMP is free software; you can redistribute it and/or modify it under
 # the terms of the MIT License; see LICENSE file for more details.
 
-"""MaDMP REST API"""
+"""MaDMP REST API."""
 
 import json
 import os
@@ -35,6 +35,10 @@ blueprint = Blueprint(
 
 
 def get_license_mapping():
+    """
+    Maps valid licenses.
+    """
+
     license_mapping = {
         'Apache License 2.0': 'https://opensource.org/licenses/Apache-2.0',
         '3-Clause BSD License': 'https://opensource.org/licenses/BSD-3-Clause',
@@ -73,7 +77,7 @@ class UploadMaDMP(ContentNegotiatedMethodView):
         Verify first, if the file validates against the maDMP schema.
         Then store its metadata.
 
-        :returns: Created Record View
+        :returns: Created Record View.
         """
 
         global json_data
@@ -350,9 +354,9 @@ class UploadMaDMP(ContentNegotiatedMethodView):
         return split_datasets() if desired_values else None
 
     @staticmethod
-    def create_record(data):
+    def create_record(**data):
         """
-        Insert the record
+        Insert the record.
 
         :param data: Record data
         :returns: Created Record's Bucket ID
@@ -371,7 +375,7 @@ class UploadMaDMP(ContentNegotiatedMethodView):
     @staticmethod
     def create_object(bucket, key, file_instance):
         """
-        Upload the file
+        Upload the file.
 
         :param bucket: the bucket id or instance
         :param key: the file name
@@ -395,10 +399,7 @@ class UploadMaDMP(ContentNegotiatedMethodView):
 
 
 upload_view = UploadMaDMP.as_view(
-    'validation',
-    serializers={
-        'application/json': json_serializer
-    }
+    'validation'
 )
 
 blueprint.add_url_rule(
