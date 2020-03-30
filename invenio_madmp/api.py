@@ -35,10 +35,7 @@ blueprint = Blueprint(
 
 
 def get_license_mapping():
-    """
-    Maps valid licenses.
-    """
-
+    """Maps valid licenses."""
     license_mapping = {
         'Apache License 2.0': 'https://opensource.org/licenses/Apache-2.0',
         '3-Clause BSD License': 'https://opensource.org/licenses/BSD-3-Clause',
@@ -68,7 +65,7 @@ def get_license_mapping():
 
 
 class UploadMaDMP(ContentNegotiatedMethodView):
-    """Validate madmp file or raw JSON and upload metadata"""
+    """Validate madmp file or raw JSON and upload metadata."""
 
     def post(self):
         """
@@ -79,7 +76,6 @@ class UploadMaDMP(ContentNegotiatedMethodView):
 
         :returns: Created Record View.
         """
-
         global json_data
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         filename = 'maDMP-schema.json'
@@ -168,7 +164,7 @@ class UploadMaDMP(ContentNegotiatedMethodView):
 
         for rec in data:
             try:
-                _ = UploadMaDMP.create_record(rec)
+                _ = UploadMaDMP.create_record(**rec)
             except Exception as exc:
                 response = {'id': calls, 'message': 'Something went wrong', 'status': 500}
                 responses['responses'].append(response)
@@ -191,7 +187,6 @@ class UploadMaDMP(ContentNegotiatedMethodView):
         :param value: URL of license
         :returns: True if license is found in the mapping, False otherwise.
         """
-
         if value in get_license_mapping().values():
             return True
 
@@ -354,18 +349,16 @@ class UploadMaDMP(ContentNegotiatedMethodView):
         return split_datasets() if desired_values else None
 
     @staticmethod
-    def create_record(**data):
+    def create_record(**kwargs):
         """
         Insert the record.
-
-        :param data: Record data
+        
         :returns: Created Record's Bucket ID
         """
-
         with db.session.begin_nested():
             rec_uuid = uuid.uuid4()
-            current_pidstore.minters['recid'](rec_uuid, data)
-            created_record = Record.create(data, id_=rec_uuid)
+            current_pidstore.minters['recid'](rec_uuid, kwargs)
+            created_record = Record.create(kwargs, id_=rec_uuid)
             RecordIndexer().index(created_record)
 
         db.session.commit()
@@ -381,7 +374,6 @@ class UploadMaDMP(ContentNegotiatedMethodView):
         :param key: the file name
         :param file_instance: the file object
         """
-
         if isinstance(bucket, str):
             size_limit = Bucket.get(bucket).size_limit
         else:
