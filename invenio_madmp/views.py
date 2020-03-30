@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2020 Sotirios Tsepelakis.
+#
+# invenio-maDMP is free software; you can redistribute it and/or modify it under
+# the terms of the MIT License; see LICENSE file for more details.
+
 """Views for deposit of records."""
 
 from __future__ import absolute_import, print_function
@@ -27,14 +34,17 @@ blueprint = Blueprint(
 
 
 class Error:
+    """Error template builder."""
 
     def __init__(self, status: int, err_type: str):
+        """Error constructor."""
         self.status = status
 
         if status == 400:
             self.err_type = err_type
 
     def make_error(self):
+        """Checks status code and builds the corresponding error."""
         if self.status // 10**2 % 10 == 4:  # client errors
 
             if self.status == 400:
@@ -57,22 +67,20 @@ class Error:
 
 def valid_formats():
     """
-    Defines valid formats for export
+    Defines valid formats for export.
 
     :returns: Tuple with valid formats
     """
-
     return ('json',)
 
 
 def query_db(query, **kwargs):
     """
-    Make a query to the Invenio DB
+    Make a query to the Invenio DB.
 
     :param query: Query to run
     :returns: Result of the query as list
     """
-
     instance = db.session.execute(text(query), kwargs)
     result = [{column: value for column, value in rowproxy.items()} for rowproxy in instance]
     result = result.pop(0)
@@ -87,7 +95,6 @@ def create():
 
     :returns: The success endpoint if upload was successful, self with errors otherwise
     """
-
     form = MaDMPForm()
 
     # if the form is submitted and validated
@@ -102,19 +109,14 @@ def create():
         # owner: current user logged in
         owner = int(current_user.get_id())
 
-        upload_type = form.upload_type.data
-
         date = form.publication_date.data
         date_str = date.strftime('%Y-%m-%d')
 
         # we create one contributor object with the submitted name
         contributors = [dict(name=form.contributors.data)]
-        description = form.description.data
-        keywords = [form.keywords.data]
 
-        access_right = form.access_right.data
-
-        for key, value in UploadMaDMP.license_mapping.items():
+        license_name = None
+        for key, value in get_license_mapping().items():
             if isinstance(value, dict):
                 for k, v in value.items():
                     if form.license_ref.data == v:
@@ -123,18 +125,29 @@ def create():
                 if form.license_ref.data == value:
                     license_name = key
 
+        data = dict(
+                owner=owner,
+                upload_type=form.upload_type.data,
+                publication_date=date_str,
+                title=form.title.data,
+                contributors=contributors,
+
+                ethical_issues_exist=form.ethical_issues.data,
+                personal_data=form.personal_data.data,
+                sensitive_data=form.sensitive_data.data,
+                access_right=form.access_right.data,
+        )
+
+        if license_name:
+            data['license'] = license_name
+        if form.description.data:
+            data['description'] = form.description.data
+        if form.keywords.data:
+            data['keywords'] = [form.keywords.data]
+
         # create the record
         bucket = UploadMaDMP.create_record(
-            dict(
-                title=form.title.data,
-                upload_type=upload_type,
-                contributors=contributors,
-                owner=owner,
-                publication_date=date_str,
-                access_right=access_right,
-                license=license_name,
-                # description=description
-            )
+            **data
         )
 
         UploadMaDMP.create_object(bucket, filename, file_inst)
@@ -148,17 +161,14 @@ def create():
 @blueprint.route("/success")
 @login_required
 def success():
-    """
-    View for successful upload
-    """
-
+    """View for successful upload."""
     return render_template('maDmp/success.html')
 
 
-# TODO: better UX: extend current records' URL
 @blueprint.route('<rec_id>/upload/file', methods=['GET', 'POST'])
 @login_required
 def upload_file(rec_id):
+    """Attaches the file to the current record."""
     file_form = FileForm()
 
     if request.method == 'POST':
@@ -190,7 +200,7 @@ def upload_file(rec_id):
 
 @blueprint.route('<int:rec_id>/export/<string:format>', methods=['GET'])
 def export(rec_id, format=None):
-
+    """Metadata export."""
     try:
         query = "SELECT * FROM records_metadata WHERE json ->> 'id' = :id"
         result = query_db(query, **{'id': str(rec_id)})
@@ -218,7 +228,7 @@ def export(rec_id, format=None):
 
 @blueprint.route('<int:rec_id>/export/<string:format>/download', methods=['GET'])
 def download(rec_id, format=None):
-
+    """Sends a file for download containing the metadata."""
     try:
         query = "SELECT json FROM records_metadata WHERE json ->> 'id' = :id"
         result = query_db(query, **{'id': str(rec_id)})
@@ -234,7 +244,6 @@ def download(rec_id, format=None):
             error.make_error()
 
         record_json = result.pop('json')
-        print(record_json)
 
         dmp_children = (
             'contact', 'contributors', 'ethical_issues_exist'
@@ -268,10 +277,19 @@ def download(rec_id, format=None):
                     else dataset_fields.update({'issued': record_json[key]})
 
             elif key in dt_lvl2_children:
-                distribution_fields.update({key: record_json[key]}) if key != 'license' \
+                distribution_fields.update({key: record_json[key]}) \
+                    if key != 'license' \
                     else distribution_fields.update(
-                        {'license': [{'license_ref': r for r in get_license_mapping()}]}
-                    )
+                    {
+                        'license': [{
+                            'license_ref': v for k, v in get_license_mapping().items()
+                            if k == record_json[key]
+                            if not isinstance(v, dict)
+                        }]
+                    }
+                )
+            elif key == 'license_start_date':
+                distribution_fields.get('license')[0].update({'start_date': record_json[key]})
 
         distribution_dict['distribution'].append(distribution_fields)
         dataset_fields.update(distribution_dict)
