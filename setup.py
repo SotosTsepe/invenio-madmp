@@ -41,7 +41,19 @@ setup_requires = [
 ]
 
 install_requires = [
+    'elasticsearch>=6',
+    'elasticsearch_dsl',
     'Flask-BabelEx>=0.9.3',
+    'flask-login>=0.3.2,<0.5',
+    'flask-security',
+    'invenio-db',
+    'invenio-files-rest',
+    'invenio-indexer',
+    'invenio-pidstore',
+    'invenio-records',
+    'invenio-records-files',
+    'invenio-search',
+    'werkzeug>=0.14.1',
 ]
 
 packages = find_packages()
@@ -84,7 +96,6 @@ setup(
         'invenio_base.api_blueprints': [
             'invenio_madmp = invenio_madmp.api:blueprint'
         ],
-        # 'invenio_base.blueprints': [],
         # 'invenio_celery.tasks': [],
         # 'invenio_db.models': [],
         # 'invenio_pidstore.minters': [],
@@ -106,6 +117,6 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
-        'Development Status :: 1 - Planning',
+        'Development Status :: 2 - Pre-Alpha',
     ],
 )
