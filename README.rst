@@ -14,11 +14,12 @@ invenio-maDMP
 .. image:: https://img.shields.io/coveralls/inveniosoftware/invenio-madmp.svg
         :target: https://coveralls.io/r/inveniosoftware/invenio-madmp
 
-.. image:: https://img.shields.io/github/tag/inveniosoftware/invenio-madmp.svg
-        :target: https://github.com/inveniosoftware/invenio-madmp/releases
+.. image:: https://img.shields.io/github/v/release/SotosTsepe/invenio-madmp?sort=semver
+        :alt: GitHub release (latest SemVer)
+        :target: https://github.com/SotosTsepe/invenio-madmp/releases
 
-.. image:: https://img.shields.io/pypi/dm/invenio-madmp.svg
-        :target: https://pypi.python.org/pypi/invenio-madmp
+.. image:: https://zenodo.org/badge/241606973.svg
+        :target: https://zenodo.org/badge/latestdoi/241606973
 
 .. image:: https://img.shields.io/github/license/SotosTsepe/invenio-madmp
         :target: https://github.com/SotosTsepe/invenio-madmp/blob/master/LICENSE
@@ -58,10 +59,10 @@ Usage
   |  the endpoint will be called that times, as many dataset objects you have stated in your maDMP.
   |  The logic here is that **every dataset** is considered as a **different record**.
   |  You can see the results by either making a ``GET`` request to Invenio's ``api/records/<record_id>`` or by
-  |  searching the records in the User Interface. See `API request screenshots`_.
+  |  searching the records in the User Interface. See `API request screenshots <#Upload-via-API-request>`_.
   |
   |
-- | You can attach a file to these records using the UI. See `Attaching a file screenshots`_.
+- | You can attach a file to these records using the UI. See `Attaching a file screenshots <#Attaching-file-to-record>`_.
   |
   |  Do bear in mind that the file should depict the metadata accordingly
   |
@@ -121,7 +122,6 @@ Usage
 Screenshots
 ============
 
-.. _API request screenshots:
 
 Upload via API request
 ----------------------
