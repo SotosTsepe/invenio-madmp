@@ -94,7 +94,7 @@ Usage
 .. |search| image:: images/UI/Results_UI.png
     :height: 100px
     :width: 200 px
-.. |record| image:: images/UI/UI_record.png
+.. |record| image:: images/UI/UI_Record.png
     :height: 100px
     :width: 200 px
 
@@ -111,6 +111,9 @@ Usage
     :height: 100px
     :width: 200 px
 .. |download| image:: images/UI/File_downloaded.png
+    :height: 100px
+    :width: 200 px
+.. |form| image:: images/UI/Upload_form.png
     :height: 100px
     :width: 200 px
 
@@ -176,7 +179,8 @@ Attaching file to record
 
 Using the upload form
 ---------------------
-TBA
+| The deposit form provides the basic fields
+| |form|
 
 Exporting data
 ------------------------
