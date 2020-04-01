@@ -20,8 +20,8 @@ from invenio_db import db
 from sqlalchemy import text
 from werkzeug.utils import secure_filename
 
-from .api import UploadMaDMP, get_license_mapping
-from .forms import MaDMPForm, FileForm
+from invenio_madmp.api import UploadMaDMP, get_license_mapping
+from invenio_madmp.forms import MaDMPForm, FileForm
 
 # define a new Flask Blueprint that is registered under the url path /madmp
 blueprint = Blueprint(
