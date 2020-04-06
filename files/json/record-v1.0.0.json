@@ -1,0 +1,215 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://localhost/schemas/records/record-v1.0.0.json",
+  "title": "My site v1.0.0",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "JSONSchema for the record",
+      "type": "string"
+    },
+    "_bucket": {
+      "description": "UUID of the deposit bucket.",
+      "type": "string"
+    },
+    "_files": {
+      "description": "Describe information needed for files in records.",
+      "type": "array",
+      "items": {
+        "description": "Describes the information of a single file in the record.",
+        "properties": {
+          "key": {
+            "description": "Key (filename) of the file.",
+            "type": "string"
+          },
+          "file_id": {
+            "description": "UUID of the FileInstance object.",
+            "type": "string"
+          },
+          "bucket": {
+            "description": "UUID of the bucket to which this file is assigned.",
+            "type": "string"
+          },
+          "checksum": {
+            "description": "Checksum the file. Starts with '<algorithm>:' prefix, e.g.: 'md5:1234abcd...'",
+            "type": "string"
+          },
+          "size": {
+            "description": "Size of the file in bytes.",
+            "type": "integer"
+          },
+          "version_id": {
+            "description": "UUID of the ObjectVersion object.",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "upload_type": {
+      "type": "string",
+      "enum": [
+        "AudioVisual",
+        "Collection",
+        "DataPaper",
+        "Dataset",
+        "Event",
+        "Image",
+        "InteractiveResource",
+        "Model",
+        "PhysicalObject",
+        "Service",
+        "Software",
+        "Sound",
+        "Text",
+        "Workflow",
+        "Other"
+      ]
+    },
+    "title": {
+      "description": "Record title.",
+      "type": "string"
+    },
+    "id": {
+      "description": "Invenio record identifier.",
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "keywords": {
+      "description": "Free text keywords.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "publication_date": {
+      "description": "When the record is published",
+      "type": "string",
+      "format": "date"
+    },
+    "contributors": {
+      "description": "Contributors in order of importance.",
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ids": {
+            "description": "List of IDs related with the person.",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "source": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "name": {
+            "description": "Full name of person or organisation. Personal name format: family, given.",
+            "type": "string"
+          },
+          "affiliations": {
+            "description": "Affiliation(s) for the purpose of this specific record.",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "email": {
+            "type": "string",
+            "description": "Contact email for the purpose of this specific record.",
+            "format": "email"
+          },
+          "role": {
+            "description": "Type of contributor",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ContactPerson",
+                "DataCollector",
+                "DataCurator",
+                "DataManager",
+                "Distributor",
+                "Editor",
+                "HostingInstitution",
+                "Producer",
+                "ProjectLeader",
+                "ProjectManager",
+                "ProjectMember",
+                "RegistrationAgency",
+                "RegistrationAuthority",
+                "RelatedPerson",
+                "Researcher",
+                "ResearchGroup",
+                "RightsHolder",
+                "Sponsor",
+                "Supervisor",
+                "WorkPackageLeader",
+                "Other"
+              ]
+            }
+          }
+        },
+        "required": [
+          "name",
+          "role"
+        ]
+
+      }
+    },
+    "data_access": {
+      "type": "string",
+      "enum": [
+        "open",
+        "embargoed",
+        "restricted",
+        "closed"
+      ]
+    },
+    "license": {
+      "type": "string"
+    },
+    "ethical_issues_exist": {
+      "type": "string",
+      "enum": [
+        "yes",
+        "no",
+        "unknown"
+      ]
+    },
+    "personal_data": {
+      "type": "string",
+      "enum": [
+        "yes",
+        "no",
+        "unknown"
+      ]
+    },
+    "sensitive_data": {
+      "type": "string",
+      "enum": [
+        "yes",
+        "no",
+        "unknown"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "id",
+    "contributors",
+    "title"
+  ]
+}

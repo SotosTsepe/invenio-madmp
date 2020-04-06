@@ -1,0 +1,98 @@
+{# -*- coding: utf-8 -*-
+
+    Copyright (C) 2020 CERN.
+
+    My site is free software; you can redistribute it and/or modify it under
+  the terms of the MIT License; see LICENSE file for more details.
+#}
+
+{%- extends config.RECORDS_UI_BASE_TEMPLATE %}
+
+{% from 'invenio_previewer/macros.html' import file_list, preview_file %}
+{# from 'invenio_records_files' import invenio* #}
+
+{%- macro record_content(data) %}
+  {% set ignore_list = ['_files', '_bucket', '$schema'] %}
+  {% for key, value in data.items() if key not in ignore_list recursive %}
+    <li class="list-group-item">
+    {% if value is mapping %}
+        <strong>{{ key }}:</strong>
+        <ul class="list-group">{{ loop(value.items()) }}</ul>
+    {% elif value is iterable and value is not string %}
+        <strong>{{ key }}:</strong>
+        <ol>
+        {% for item in value %}
+          <li>
+          {% if item is mapping %}
+            <ul class="list-group">
+              {{ record_content(item) }}
+            </ul>
+          {% else %}
+            {{ item }}
+          {% endif %}
+          </li>
+        {% endfor %}
+        </ol>
+    {% else %}
+      <strong>{{ key }}:</strong> {{ value }}
+    {% endif %}
+    </li>
+  {% endfor %}
+{%- endmacro %}
+
+{% macro preview(files) %}
+  {% set selected_file = files|select_preview_file %}
+  {%- if selected_file -%}
+    <div class="panel" id="preview">
+      <div class="panel-heading">
+        <a class="panel-toggle" data-toggle="collapse" href="#collapsablePreview">
+          {{_('Preview')}}
+          <span class="pull-right show-on-collapsed"><i class="fa fa-chevron-right"></i></span>
+          <span class="pull-right hide-on-collapsed"><i class="fa fa-chevron-down"></i></span>
+        </a>
+      </div>
+      <div id="collapsablePreview" class="collapse in">
+        {{- preview_file('invenio_records_ui.recid_previewer', pid=pid, filename=selected_file.key) }}
+      </div>
+    </div>
+  {%- endif %}
+{%- endmacro %}
+
+{%- block page_body %}
+  <div class="container">
+    <a href="{{ url_for('invenio_search_ui.search') }}">Back to Search</a>
+  </div>
+
+  <div class="container">
+    <h2>{{record.title}}</h2>
+    <div class="panel panel-default">
+      <ul class="list-group">
+        {{ record_content(record) }}
+      </ul>
+    </div>
+
+    {% set files = record._files %}
+    {{ preview(files) }}
+    {%- if files -%}
+      {{ file_list(files, pid) }}
+    {%- endif %}
+
+    <button type="button" class="btn btn-info" onclick="window.location.href='{{ url_for('maDMP.upload_file', rec_id=record['id'] ) }}'">Upload files</button>
+
+    <form action="{{ url_for('maDMP.export', rec_id=record['id'], format='json') }}" style="float: right">
+      <div style="float: left;">
+        <p>
+          <label>Select Format</label>
+        </p>
+        <select id="export_type" style="width: 100%;">
+          <option value="json">JSON</option>
+        </select>
+      </div>
+      <div style="float: right; margin-left: 30px; height: 65px; display: flex; align-items: center;">
+        <button type="submit" class="btn btn-warning">Export DMP</button>
+      </div>
+    </form>
+  </div>
+  {{ webpack['my-site-preview.js'] }}
+{%- endblock %}
+

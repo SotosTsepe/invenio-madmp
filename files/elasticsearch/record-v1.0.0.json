@@ -1,0 +1,87 @@
+{
+  "mappings": {
+    "date_detection": false,
+    "numeric_detection": false,
+    "properties": {
+      "$schema": {
+        "type": "text",
+        "index": false
+      },
+      "title": {
+        "type": "text",
+        "copy_to": "suggest_title"
+      },
+      "suggest_title": {
+        "type": "completion"
+      },
+      "id": {
+        "type": "keyword"
+      },
+      "keywords": {
+        "type": "keyword"
+      },
+      "description": {
+        "type": "text"
+      },
+      "publication_date": {
+        "type": "date",
+        "format": "date"
+      },
+      "contributors": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "text"
+              },
+              "value": {
+                "type": "keyword"
+              }
+            }
+          },
+          "affiliations": {
+            "type": "text"
+          },
+          "role": {
+            "type": "keyword"
+          },
+          "email": {
+            "type": "text"
+          },
+          "name": {
+            "type": "text"
+          }
+        }
+      },
+      "license": {
+        "type": "text"
+      },
+      "upload_type": {
+        "type": "text"
+      },
+      "data_access": {
+        "type": "text"
+      },
+      "ethical_issues_exist": {
+        "type": "text"
+      },
+      "personal_data": {
+        "type": "text"
+      },
+      "sensitive_data": {
+        "type": "text"
+      },
+      "contributors_count": {
+        "type": "short"
+      },
+      "_created": {
+        "type": "date"
+      },
+      "_updated": {
+        "type": "date"
+      }
+    }
+  }
+}
