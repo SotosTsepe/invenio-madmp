@@ -8,20 +8,21 @@
 Installation
 ============
 
-invenio-maDMP is on PyPI so all you need is:
+You can simply install invenio-maDMP by running:
 
 .. code-block:: console
 
-   $ pip install invenio-madmp
+   $ pip install git+https://github.com/SotosTsepe/invenio-madmp
 
 
 .. note::
    You will also need to replace manually (for now) the json_ and elasticsearch_ schemas which come with Invenio,
    as well as the `marshmallow json.py`_ file.
 
-   Last but not least you will have to overwrite the record.html file in order to be able to attach files and
+   Last but not least you will have to overwrite the `record.html`_ file in order to be able to attach files and
    export their metadata.
 
-.. _json:
-.. _elasticsearch:
-.. _marshmallow json.py:
+.. _json: https://github.com/SotosTsepe/invenio-madmp/blob/master/files/json/record-v1.0.0.json
+.. _elasticsearch: https://github.com/SotosTsepe/invenio-madmp/blob/master/files/elasticsearch/record-v1.0.0.json
+.. _marshmallow json.py: https://github.com/SotosTsepe/invenio-madmp/blob/master/files/marshmallow/json.py
+.. _record.html: https://github.com/SotosTsepe/invenio-madmp/blob/master/files/record.html
