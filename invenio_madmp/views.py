@@ -52,7 +52,7 @@ class Error:
                 @blueprint.errorhandler(self.status)
                 def bad_request():
                     if self.err_type == 'Invalid Format':
-                        return make_response(render_template('maDmp/errors/400_wrong_format.html'), self.status)
+                        return make_response(render_template('invenio_madmp/errors/400_wrong_format.html'), self.status)
                     elif self.err_type == 'Foo':  # future use case
                         return make_response(render_template('foobar.html'), self.status)
 
@@ -155,14 +155,14 @@ def create():
         # redirect to the success page
         return redirect(url_for('maDMP.success'))
 
-    return render_template('maDmp/create.html', form=form)
+    return render_template('invenio_madmp/create.html', form=form)
 
 
 @blueprint.route("/success")
 @login_required
 def success():
     """View for successful upload."""
-    return render_template('maDmp/success.html')
+    return render_template('invenio_madmp/success.html')
 
 
 @blueprint.route('<rec_id>/upload/file', methods=['GET', 'POST'])
@@ -195,7 +195,7 @@ def upload_file(rec_id):
                 flash('File successfully uploaded')
                 return redirect(url_for('invenio_records_ui.recid', pid_value=str(rec_id)))
 
-    return render_template('maDmp/upload.html', file_form=file_form, rec_id=rec_id)
+    return render_template('invenio_madmp/upload.html', file_form=file_form, rec_id=rec_id)
 
 
 @blueprint.route('<int:rec_id>/export/<string:format>', methods=['GET'])
@@ -220,7 +220,7 @@ def export(rec_id, format=None):
         record_json['metadata'] = record_json.pop('json')
 
         return render_template(
-            'maDmp/export.html',
+            'invenio_madmp/export.html',
             record=json.dumps(record_json, indent=2, default=str),
             rec_id=rec_id
         )
