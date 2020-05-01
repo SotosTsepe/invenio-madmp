@@ -77,7 +77,7 @@ class UploadMaDMP(ContentNegotiatedMethodView):
         :returns: Created Record View.
         """
         global json_data
-        path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        path = os.path.dirname(os.path.abspath(__file__))
         filename = 'maDMP-schema.json'
 
         try:
@@ -352,7 +352,7 @@ class UploadMaDMP(ContentNegotiatedMethodView):
     def create_record(**kwargs):
         """
         Insert the record.
-        
+
         :returns: Created Record's Bucket ID
         """
         with db.session.begin_nested():
